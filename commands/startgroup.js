@@ -99,8 +99,6 @@ module.exports = {
 
       // Filter by user click
       const filter = async (i) => {
-        const result = i.customId.trim().split(/\s+/);
-
         // Check users ID
         if (
           i.user.id === p1.id ||
@@ -108,10 +106,8 @@ module.exports = {
           i.user.id === p3.id ||
           i.user.id === p4.id
         )
-          // Limit by team name
-          for (const team_username of result) {
-            if (team_username === i.user.username) return true;
-          }
+          // Limit by team name;
+          if(i.customId.includes(i.user.username)) return true;
 
         // Check for specific name
         if (i.user.username === "Kurama")
@@ -131,39 +127,42 @@ module.exports = {
 
       // Listen on success
       collector.on("collect", async (i) => {
-        const result = i.customId.trim().split(/\s+/);
 
         // Team1 btn
-        if (result[0] === p1.username || result[1] === p2.username) {
+        if (i.customId.includes(p1.username) && i.customId.includes(p2.username)) {
           t1_score++; // Increment counter when btn clicked
+          let btn1_team1Update = `**__TEAM1__ (${t1_score})**${emptySpace} \n` + "`1`" + `${p1}\n` + "`2`" + `${p2}`;
+          let btn1_team2Update = `*~~__TEAM2__ (${t2_score})~~*\n` + "~~`3`" + `${p3}~~\n` + "~~`4`" + `${p4}~~`;
 
           // Team1 win
           if (t1_score === 10) {
-            cardEmbed.fields[0].value = `__TEAM1(***${t1_score}***)__${emptySpace} \n${p1}\n${p2}`;
-            cardEmbed.fields[2].value = `~~__TEAM2(***${t2_score}***)__\n${p3}\n${p4}~~`;
-            cardEmbed.setTitle(`*${Winneremoji}${p1.username}\n${Winneremoji}${p2.username}*`);
+            cardEmbed.fields[0].value = btn1_team1Update; // Winner field
+            cardEmbed.fields[2].value = btn1_team2Update; // Loser field
+            cardEmbed.setTitle(`${Winneremoji}*${p1.username}*\n${Winneremoji}*${p2.username}*`);
             return await i.update({ embeds: [cardEmbed], components: [] });
           }
-
+          
           // Update team1 embed
-          cardEmbed.fields[0].value = `__TEAM1(***${t1_score}***)__ ${emptySpace} \n${p1}\n${p2}`;
+          cardEmbed.fields[0].value = btn1_team1Update; // Edit embed field
           await i.update({ embeds: [cardEmbed] });
         }
-
+  
         // Team2 btn
-        if (result[0] === p3.username || result[1] === p4.username) {
+        if (i.customId.includes(p3.username) && i.customId.includes(p4.username)) {
           t2_score++; // Increment counter when btn clicked
+          let btn2_team1Update = `*~~__TEAM1__ (${t1_score})~~* ${emptySpace}\n ` + "~~`1`" + `${p1}~~\n` + "~~`2`" + `${p2}~~`;
+          let btn2_team2Update = `**__TEAM2__ (${t2_score})**\n` + "`3`" + `${p3}\n` + "`4`" + `${p4}`;
 
           // Team2 win
           if (t2_score === 10) {
-            cardEmbed.fields[2].value = `__TEAM2(***${t2_score}***)__\n${p3}\n${p4}`;
-            cardEmbed.fields[0].value = `~~__TEAM1(***${t1_score}***)__~~${emptySpace} ~~\n${p1}\n${p2}~~`;
-            cardEmbed.setTitle(`*${Winneremoji}${p3.username}\n${Winneremoji}${p4.username}`);
+            cardEmbed.fields[2].value = btn2_team2Update; // Winner field
+            cardEmbed.fields[0].value = btn2_team1Update; // Loser field
+            cardEmbed.setTitle(`${Winneremoji}*${p3.username}*\n${Winneremoji}*${p4.username}*`);
             return await i.update({ embeds: [cardEmbed], components: [] });
           }
 
           // Update team2 embed
-          cardEmbed.fields[2].value = `__TEAM2(***${t2_score}***)__ ${emptySpace} \n${p3}\n${p4}`;
+          cardEmbed.fields[2].value = btn2_team2Update; // Edit embed field
           await i.update({ embeds: [cardEmbed] });
         }
       });
@@ -172,6 +171,7 @@ module.exports = {
       collector.on("end", (collected) =>
         console.log(`Collected ${collected.size} items`)
       );
+      
     } catch (err) {
       console.log(err);
     }
