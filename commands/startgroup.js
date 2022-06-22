@@ -5,11 +5,35 @@ const {
   MessageAttachment,
 } = require("discord.js");
 const teamScoreEmbed = require("../functions/teamScoreEmbed");
+const randomPicture = require("../functions/randomPicture");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("startgroup")
     .setDescription("Start a group game(4)")
+
+    .addNumberOption((option) =>
+      option
+        .setName("rounds")
+        .setDescription("select number of rounds")
+        .setRequired(true)
+        .addChoices({
+          name: "First to 3",
+          value: 3,
+        })
+        .addChoices({
+          name: "First to 5",
+          value: 5,
+        })
+        .addChoices({
+          name: "First to 7",
+          value: 7,
+        })
+        .addChoices({
+          name: "First to 10",
+          value: 10,
+        })
+    )
 
     .addUserOption((option) =>
       option
@@ -42,8 +66,9 @@ module.exports = {
   async execute(interaction) {
     try {
       // Local images
+      const imgResult = randomPicture(); // Generate random img
       const authorImg = new MessageAttachment("./public/img/julian_author.png");
-      const iconImg = new MessageAttachment("./public/img/bandit_icon.png");
+      const iconImg = new MessageAttachment(`./public/img/${imgResult}`);
 
       // Empty space variable
       const emptySpace = "\u200B \u200B \u200B \u200B \u200B \u200B \u200B \u200B \u200B \u200B \u200B \u200B \u200B \u200B \u200B \u200B";
@@ -53,13 +78,14 @@ module.exports = {
       const p2 = interaction.options.getUser("player2");
       const p3 = interaction.options.getUser("player3");
       const p4 = interaction.options.getUser("player4");
+      const rounds = interaction.options.getNumber("rounds"); // Number of rounds
 
       // Team score
       let t1_score = 0;
       let t2_score = 0;
 
       const players = [p1.username, p2.username, p3.username, p4.username]; // Player name arrays
-      const cardEmbed = teamScoreEmbed(p1, p2, p3, p4, t1_score, t2_score); // Embed card
+      const cardEmbed = teamScoreEmbed(p1, p2, p3, p4, t1_score, t2_score, rounds, imgResult); // Embed card
       const Winneremoji = "<:trophy:988122907815325758>"; // Winner emoji
 
       const row = new MessageActionRow()
@@ -135,7 +161,7 @@ module.exports = {
           let btn1_team2Update = `*~~__TEAM2__ (${t2_score})~~*\n` + "~~`3`" + `${p3}~~\n` + "~~`4`" + `${p4}~~`;
 
           // Team1 win
-          if (t1_score === 10) {
+          if (t1_score === rounds) {
             cardEmbed.fields[0].value = btn1_team1Update; // Winner field
             cardEmbed.fields[2].value = btn1_team2Update; // Loser field
             cardEmbed.setTitle(`${Winneremoji}*${p1.username}*\n${Winneremoji}*${p2.username}*`);
@@ -154,7 +180,7 @@ module.exports = {
           let btn2_team2Update = `**__TEAM2__ (${t2_score})**\n` + "`3`" + `${p3}\n` + "`4`" + `${p4}`;
 
           // Team2 win
-          if (t2_score === 10) {
+          if (t2_score === rounds) {
             cardEmbed.fields[2].value = btn2_team2Update; // Winner field
             cardEmbed.fields[0].value = btn2_team1Update; // Loser field
             cardEmbed.setTitle(`${Winneremoji}*${p3.username}*\n${Winneremoji}*${p4.username}*`);

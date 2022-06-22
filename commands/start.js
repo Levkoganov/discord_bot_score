@@ -5,11 +5,35 @@ const {
   MessageAttachment,
 } = require("discord.js");
 const scoreEmbed = require("../functions/scoreEmbed");
+const randomPicture = require("../functions/randomPicture");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("start")
     .setDescription("start a game!")
+
+    .addNumberOption((option) =>
+      option
+        .setName("rounds")
+        .setDescription("select number of rounds")
+        .setRequired(true)
+        .addChoices({
+          name: "First to 3",
+          value: 3,
+        })
+        .addChoices({
+          name: "First to 5",
+          value: 5,
+        })
+        .addChoices({
+          name: "First to 7",
+          value: 7,
+        })
+        .addChoices({
+          name: "First to 10",
+          value: 10,
+        })
+    )
 
     .addUserOption((option) =>
       option
@@ -27,16 +51,17 @@ module.exports = {
 
   async execute(interaction) {
     try {
-      // Local images
+      const imgResult = randomPicture(); // Generate random img
       const authorImg = new MessageAttachment("./public/img/julian_author.png");
-      const iconImg = new MessageAttachment("./public/img/bandit_icon.png");
+      const iconImg = new MessageAttachment(`./public/img/${imgResult}`);
 
       // Empty space variable
       const emptySpace = "\u200B \u200B \u200B \u200B \u200B \u200B \u200B";
 
-      // All players
-      const p1 = interaction.options.getUser("player1");
-      const p2 = interaction.options.getUser("player2");
+      // Input information
+      const p1 = interaction.options.getUser("player1"); // Player 1
+      const p2 = interaction.options.getUser("player2"); // Player 2
+      const rounds = interaction.options.getNumber("rounds"); // Number of rounds
 
       // Player avatars
       const p1_avatar = p1.displayAvatarURL({ dynamic: true });
@@ -47,7 +72,7 @@ module.exports = {
       let p2_score = 0;
 
       // Creating new card Embed
-      const cardEmbed = scoreEmbed(p1, p2, p1_score, p2_score); // Embed card
+      const cardEmbed = scoreEmbed(p1, p2, p1_score, p2_score, rounds, imgResult); // Embed card
       const Winneremoji = "<:trophy:988122907815325758>"; // Winner emoji
 
       const row = new MessageActionRow()
@@ -77,7 +102,7 @@ module.exports = {
       // Filter by user click
       const filter = async (i) => {
         if (i.user.id === p1.id || i.user.id === p2.id) // Check users ID
-          if (i.customId === i.user.username)// Limit by username
+          if (i.customId === i.user.username) // Limit by username
             return true;
 
         // Check for specific name
@@ -106,7 +131,7 @@ module.exports = {
           let btn1_player2Update = `*~~__PLAYER2__ (${p2_score})\n` + "`2`" + `${p2}~~*`;
 
           // Player1 win
-          if (p1_score === 10) {
+          if (p1_score === rounds) {
             cardEmbed.fields[0].value = btn1_player1Update; // Winner field
             cardEmbed.fields[2].value = btn1_player2Update; // Loser field
             cardEmbed.setTitle(`${Winneremoji}*${p1.username}*`);
@@ -126,18 +151,17 @@ module.exports = {
 
         // Player2 btn
         if (i.customId === p2.username) {
-          
           p2_score++; // Increment counter when btn clicked
           let btn2_player1Update = `*~~__PLAYER1__ (${p1_score})~~${emptySpace} \n` + "~~`1`" + `${p1}~~*`
           let btn2_player2Update = `**__PLAYER2__ (${p2_score})\n` + "`2`" + `${p2}**`;
 
           // Player2 win
-          if (p2_score === 10) {
+          if (p2_score === rounds) {
             cardEmbed.fields[2].value = btn2_player2Update; // Winner field
             cardEmbed.fields[0].value = btn2_player1Update; // Loser field
             cardEmbed.setTitle(`${Winneremoji}*${p2.username}*`);
             cardEmbed.setThumbnail(p2_avatar);
-            
+
             return await i.update({
               embeds: [cardEmbed],
               files: [authorImg],
@@ -155,7 +179,7 @@ module.exports = {
       collector.on("end", (collected) =>
         console.log(`Collected ${collected.size} items`)
       );
-      
+
     } catch (err) {
       console.log(err);
 
