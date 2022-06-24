@@ -3,7 +3,9 @@ const {
   MessageActionRow,
   MessageButton,
   MessageAttachment,
+  Permissions
 } = require("discord.js");
+const getChannelData = require("../functions/getChannelData");
 const teamScoreEmbed = require("../functions/teamScoreEmbed");
 const randomPicture = require("../functions/randomPicture");
 
@@ -65,6 +67,11 @@ module.exports = {
 
   async execute(interaction) {
     try {
+      // Server and Channel info
+      const guildId = interaction.guild.id;
+      const channelInfo = {};
+      let channelData = channelInfo[guildId];
+
       // Local images
       const imgResult = randomPicture(); // Generate random img
       const authorImg = new MessageAttachment("./public/img/julian_author.png");
@@ -85,7 +92,16 @@ module.exports = {
       let t2_score = 0;
 
       const players = [p1.username, p2.username, p3.username, p4.username]; // Player name arrays
-      const cardEmbed = teamScoreEmbed(p1, p2, p3, p4, t1_score, t2_score, rounds, imgResult); // Embed card
+      const cardEmbed = teamScoreEmbed(
+        p1,
+        p2,
+        p3,
+        p4,
+        t1_score,
+        t2_score,
+        rounds,
+        imgResult
+      ); // Embed card
       const Winneremoji = "<:trophy:988122907815325758>"; // Winner emoji
 
       const row = new MessageActionRow()
@@ -133,7 +149,7 @@ module.exports = {
           i.user.id === p4.id
         )
           // Limit by team name;
-          if(i.customId.includes(i.user.username)) return true;
+          if (i.customId.includes(i.user.username)) return true;
 
         // Check for specific name
         if (i.user.username === "Kurama")
@@ -153,7 +169,6 @@ module.exports = {
 
       // Listen on success
       collector.on("collect", async (i) => {
-
         // Team1 btn
         if (i.customId.includes(p1.username) && i.customId.includes(p2.username)) {
           t1_score++; // Increment counter when btn clicked
@@ -165,16 +180,43 @@ module.exports = {
             cardEmbed.fields[0].value = btn1_team1Update; // Winner field
             cardEmbed.fields[2].value = btn1_team2Update; // Loser field
             cardEmbed.setTitle(`${Winneremoji}*${p1.username}*\n${Winneremoji}*${p2.username}*`);
-            return await i.update({ embeds: [cardEmbed], components: [] });
+            await i.update({ embeds: [cardEmbed], components: [] });
+
+            // check and set if channel exist
+            const channelId = await getChannelData(guildId, interaction);
+
+            // Check if channel set.
+            if (!channelId) 
+              // Channel is not set reply.
+              return await i.editReply({content: "please set a channel with '/setchannel'."});
+            
+
+            // set data for channel
+            channelData = channelInfo[guildId] = channelId;
+
+            // Check if bot have permissions
+            if (i.guild.me.permissionsIn(channelId).has(Permissions.FLAGS.VIEW_CHANNEL && Permissions.FLAGS.SEND_MESSAGES)) {
+              // Send card info to channel.
+              return channelData.send({
+                embeds: [cardEmbed],
+                files: [authorImg, iconImg],
+                components: [],
+              });
+            } else {
+              // channelId.permissionOverwrites.edit(i.guild.me.id, { SEND_MESSAGES: true, VIEW_CHANNEL: true});
+              return await i.editReply({
+                content: `bot doesn't have a permission for "${channelId.name}" channel`,
+              });
+            }
           }
-          
+
           // Update team1 embed
           cardEmbed.fields[0].value = btn1_team1Update; // Edit embed field
           await i.update({ embeds: [cardEmbed] });
         }
-  
+
         // Team2 btn
-        if (i.customId.includes(p3.username) && i.customId.includes(p4.username)) {
+        if (i.customId.includes(p3.username) &&i.customId.includes(p4.username)) {
           t2_score++; // Increment counter when btn clicked
           let btn2_team1Update = `*~~__TEAM1__ (${t1_score})~~* ${emptySpace}\n ` + "~~`1`" + `${p1}~~\n` + "~~`2`" + `${p2}~~`;
           let btn2_team2Update = `**__TEAM2__ (${t2_score})**\n` + "`3`" + `${p3}\n` + "`4`" + `${p4}`;
@@ -184,7 +226,33 @@ module.exports = {
             cardEmbed.fields[2].value = btn2_team2Update; // Winner field
             cardEmbed.fields[0].value = btn2_team1Update; // Loser field
             cardEmbed.setTitle(`${Winneremoji}*${p3.username}*\n${Winneremoji}*${p4.username}*`);
-            return await i.update({ embeds: [cardEmbed], components: [] });
+            await i.update({ embeds: [cardEmbed], components: [] });
+
+            // check and set if channel exist
+            const channelId = await getChannelData(guildId, interaction);
+
+            // Check if channel set.
+            if (!channelId)
+              // Channel is not set reply.
+              return await i.editReply({content: "please set a channel with '/setchannel'."});
+
+            // set data for channel
+            channelData = channelInfo[guildId] = channelId;
+
+            // Check if bot have permissions
+            if (i.guild.me.permissionsIn(channelId).has(Permissions.FLAGS.VIEW_CHANNEL && Permissions.FLAGS.SEND_MESSAGES)) {
+              // Send card info to channel.
+              return channelData.send({
+                embeds: [cardEmbed],
+                files: [authorImg, iconImg],
+                components: [],
+              });
+            } else {
+              // channelId.permissionOverwrites.edit(i.guild.me.id, { SEND_MESSAGES: true, VIEW_CHANNEL: true});
+              return await i.editReply({
+                content: `bot doesn't have a permission for "${channelId.name}" channel`,
+              });
+            }
           }
 
           // Update team2 embed
@@ -197,7 +265,6 @@ module.exports = {
       collector.on("end", (collected) =>
         console.log(`Collected ${collected.size} items`)
       );
-      
     } catch (err) {
       console.log(err);
     }

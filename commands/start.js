@@ -3,7 +3,9 @@ const {
   MessageActionRow,
   MessageButton,
   MessageAttachment,
+  Permissions,
 } = require("discord.js");
+const getChannelData = require("../functions/getChannelData");
 const scoreEmbed = require("../functions/scoreEmbed");
 const randomPicture = require("../functions/randomPicture");
 
@@ -51,6 +53,11 @@ module.exports = {
 
   async execute(interaction) {
     try {
+      // Server and Channel info
+      const guildId = interaction.guild.id;
+      const channelInfo = {};
+      let channelData = channelInfo[guildId];
+
       const imgResult = randomPicture(); // Generate random img
       const authorImg = new MessageAttachment("./public/img/julian_author.png");
       const iconImg = new MessageAttachment(`./public/img/${imgResult}`);
@@ -72,7 +79,14 @@ module.exports = {
       let p2_score = 0;
 
       // Creating new card Embed
-      const cardEmbed = scoreEmbed(p1, p2, p1_score, p2_score, rounds, imgResult); // Embed card
+      const cardEmbed = scoreEmbed(
+        p1,
+        p2,
+        p1_score,
+        p2_score,
+        rounds,
+        imgResult
+      ); // Embed card
       const Winneremoji = "<:trophy:988122907815325758>"; // Winner emoji
 
       const row = new MessageActionRow()
@@ -101,8 +115,10 @@ module.exports = {
 
       // Filter by user click
       const filter = async (i) => {
-        if (i.user.id === p1.id || i.user.id === p2.id) // Check users ID
-          if (i.customId === i.user.username) // Limit by username
+        // Check users ID
+        if (i.user.id === p1.id || i.user.id === p2.id)
+          // Limit by username
+          if (i.customId === i.user.username)
             return true;
 
         // Check for specific name
@@ -137,11 +153,38 @@ module.exports = {
             cardEmbed.setTitle(`${Winneremoji}*${p1.username}*`);
             cardEmbed.setThumbnail(p1_avatar);
 
-            return await i.update({
+            // Update card
+            await i.update({
               embeds: [cardEmbed],
               files: [authorImg],
               components: [],
             });
+
+            // check and set if channel exist
+            const channelId = await getChannelData(guildId, interaction);
+
+            // Check if channel set.
+            if (!channelId) 
+              // Channel is not set reply.
+              return await i.editReply({content: "please set a channel with '/setchannel'."});
+
+            // set data for channel
+            channelData = channelInfo[guildId] = channelId;
+
+            // Check if bot have permissions
+            if (i.guild.me.permissionsIn(channelId).has(Permissions.FLAGS.VIEW_CHANNEL &&Permissions.FLAGS.SEND_MESSAGES)) {
+              // Send card info to channel.
+              return channelData.send({
+                embeds: [cardEmbed],
+                files: [authorImg],
+                components: [],
+              });
+            } else {
+              // channelId.permissionOverwrites.edit(i.guild.me.id, { SEND_MESSAGES: true, VIEW_CHANNEL: true});
+              return await i.editReply({
+                content: `bot doesn't have a permission for "${channelId.name}" channel`,
+              });
+            }
           }
 
           // Update player1 embed
@@ -152,7 +195,7 @@ module.exports = {
         // Player2 btn
         if (i.customId === p2.username) {
           p2_score++; // Increment counter when btn clicked
-          let btn2_player1Update = `*~~__PLAYER1__ (${p1_score})~~${emptySpace} \n` + "~~`1`" + `${p1}~~*`
+          let btn2_player1Update = `*~~__PLAYER1__ (${p1_score})~~${emptySpace} \n` + "~~`1`" + `${p1}~~*`;
           let btn2_player2Update = `**__PLAYER2__ (${p2_score})\n` + "`2`" + `${p2}**`;
 
           // Player2 win
@@ -162,11 +205,36 @@ module.exports = {
             cardEmbed.setTitle(`${Winneremoji}*${p2.username}*`);
             cardEmbed.setThumbnail(p2_avatar);
 
-            return await i.update({
+            await i.update({
               embeds: [cardEmbed],
               files: [authorImg],
               components: [],
             });
+
+            // check and set if channel exist
+            const channelId = await getChannelData(guildId, interaction);
+
+            // Check if channel set.
+            if (!channelId) 
+              // Channel is not set reply.
+              return await i.editReply({content: "please set a channel with '/setchannel'."});
+
+            // set data for channel
+            channelData = channelInfo[guildId] = channelId;
+            // Check if bot have permissions
+            if (i.guild.me.permissionsIn(channelId).has(Permissions.FLAGS.VIEW_CHANNEL && Permissions.FLAGS.SEND_MESSAGES)) {
+              // Send card info to channel.
+              return channelData.send({
+                embeds: [cardEmbed],
+                files: [authorImg],
+                components: [],
+              });
+            } else {
+              // channelId.permissionOverwrites.edit(i.guild.me.id, { SEND_MESSAGES: true, VIEW_CHANNEL: true});
+              return await i.editReply({
+                content: `bot doesn't have a permission for "${channelId.name}" channel`,
+              });
+            }
           }
 
           // Update player1 embed
@@ -179,7 +247,6 @@ module.exports = {
       collector.on("end", (collected) =>
         console.log(`Collected ${collected.size} items`)
       );
-
     } catch (err) {
       console.log(err);
 
