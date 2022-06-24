@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const { Client, Intents, Collection } = require('discord.js');
 const  { deployCommands } = require('./deploy-commands')
+const db_connection = require('./config/mongo_connection');
 require('dotenv').config()
 
 // Create a new client instance
@@ -21,14 +22,14 @@ for (const file of commandFiles) {
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
-	deployCommands();
+	db_connection(process.env.MONGODB_URI); // Connect to DB
+	deployCommands(); // Get all bot commands
 	console.log('Successfully reloaded application (/) commands(READY).');
-
 });
 
 client.on('guildCreate', (guild) => {
 	const { id } = guild;
-	deployCommands(id);
+	deployCommands(id); // Get all bot commands
 	console.log('Successfully reloaded application (/) commands(guildCreate).');
 });
 
