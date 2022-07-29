@@ -1,3 +1,4 @@
+// Dependencies imports
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const {
   MessageActionRow,
@@ -5,8 +6,14 @@ const {
   MessageAttachment,
   Permissions,
 } = require("discord.js");
+
+// Custom functions
 const getChannelData = require("../functions/getChannelData");
-const scoreEmbed = require("../functions/scoreEmbed");
+const setPlayerScore = require("../functions/setPlayerScore.js")
+const updateRankChannel = require("../functions/updateRankChannel")
+
+// Card UI
+const scoreEmbed = require("../functions/embeds/scoreEmbed");
 const randomPicture = require("../functions/randomPicture");
 
 module.exports = {
@@ -20,12 +27,16 @@ module.exports = {
         .setDescription("select number of rounds")
         .setRequired(true)
         .addChoices({
-          name: "First to 3",
-          value: 3,
+          name: "First to 4",
+          value: 4,
         })
         .addChoices({
           name: "First to 5",
           value: 5,
+        })
+        .addChoices({
+          name: "First to 6",
+          value: 6,
         })
         .addChoices({
           name: "First to 7",
@@ -54,16 +65,13 @@ module.exports = {
   async execute(interaction) {
     try {
       // Server and Channel info
-      const guildId = interaction.guild.id;
+      const guiildInfo = interaction.guild;
       const channelInfo = {};
-      let channelData = channelInfo[guildId];
+      let channelData = channelInfo[guiildInfo.id];
 
       const imgResult = randomPicture(); // Generate random img
       const authorImg = new MessageAttachment("./public/img/julian_author.png");
       const iconImg = new MessageAttachment(`./public/img/${imgResult}`);
-
-      // Empty space variable
-      const emptySpace = "\u200B \u200B \u200B \u200B \u200B \u200B \u200B";
 
       // Input information
       const p1 = interaction.options.getUser("player1"); // Player 1
@@ -143,7 +151,7 @@ module.exports = {
         // Player1 btn
         if (i.customId === p1.username) {
           p1_score++; // Increment counter when btn clicked
-          let btn1_player1Update = `**__PLAYER1__ (${p1_score})${emptySpace} \n` + "`1`" + `${p1}**`;
+          let btn1_player1Update = `**__PLAYER1__ (${p1_score})\n` + "`1`" + `${p1}**`;
           let btn1_player2Update = `*~~__PLAYER2__ (${p2_score})\n` + "`2`" + `${p2}~~*`;
 
           // Player1 win
@@ -153,6 +161,9 @@ module.exports = {
             cardEmbed.setTitle(`${Winneremoji}*${p1.username}*`);
             cardEmbed.setThumbnail(p1_avatar);
 
+            // Update player score
+            await setPlayerScore(p1, p2, guiildInfo.name);
+
             // Update card
             await i.update({
               embeds: [cardEmbed],
@@ -161,7 +172,7 @@ module.exports = {
             });
 
             // check and set if channel exist
-            const channelId = await getChannelData(guildId, interaction);
+            const channelId = await getChannelData(guiildInfo.id, interaction);
 
             // Check if channel set.
             if (!channelId) 
@@ -169,16 +180,12 @@ module.exports = {
               return await i.editReply({content: "please set a channel with '/setchannel'."});
 
             // set data for channel
-            channelData = channelInfo[guildId] = channelId;
+            channelData = channelInfo[guiildInfo.id] = channelId;
 
             // Check if bot have permissions
             if (i.guild.me.permissionsIn(channelId).has(Permissions.FLAGS.VIEW_CHANNEL &&Permissions.FLAGS.SEND_MESSAGES)) {
-              // Send card info to channel.
-              return channelData.send({
-                embeds: [cardEmbed],
-                files: [authorImg],
-                components: [],
-              });
+              await updateRankChannel(channelData);
+              return
             } else {
               // channelId.permissionOverwrites.edit(i.guild.me.id, { SEND_MESSAGES: true, VIEW_CHANNEL: true});
               return await i.editReply({
@@ -195,7 +202,7 @@ module.exports = {
         // Player2 btn
         if (i.customId === p2.username) {
           p2_score++; // Increment counter when btn clicked
-          let btn2_player1Update = `*~~__PLAYER1__ (${p1_score})~~${emptySpace} \n` + "~~`1`" + `${p1}~~*`;
+          let btn2_player1Update = `*~~__PLAYER1__ (${p1_score})~~\n` + "~~`1`" + `${p1}~~*`;
           let btn2_player2Update = `**__PLAYER2__ (${p2_score})\n` + "`2`" + `${p2}**`;
 
           // Player2 win
@@ -205,6 +212,9 @@ module.exports = {
             cardEmbed.setTitle(`${Winneremoji}*${p2.username}*`);
             cardEmbed.setThumbnail(p2_avatar);
 
+            //PLAYERSCORETEST
+            await setPlayerScore(p2, p1, guiildInfo.name);
+
             await i.update({
               embeds: [cardEmbed],
               files: [authorImg],
@@ -212,23 +222,20 @@ module.exports = {
             });
 
             // check and set if channel exist
-            const channelId = await getChannelData(guildId, interaction);
+            const channelId = await getChannelData(guiildInfo.id, interaction);
 
             // Check if channel set.
             if (!channelId) 
-              // Channel is not set reply.
               return await i.editReply({content: "please set a channel with '/setchannel'."});
 
             // set data for channel
-            channelData = channelInfo[guildId] = channelId;
+            channelData = channelInfo[guiildInfo.id] = channelId;
             // Check if bot have permissions
             if (i.guild.me.permissionsIn(channelId).has(Permissions.FLAGS.VIEW_CHANNEL && Permissions.FLAGS.SEND_MESSAGES)) {
               // Send card info to channel.
-              return channelData.send({
-                embeds: [cardEmbed],
-                files: [authorImg],
-                components: [],
-              });
+              await updateRankChannel(channelData);
+              return;
+
             } else {
               // channelId.permissionOverwrites.edit(i.guild.me.id, { SEND_MESSAGES: true, VIEW_CHANNEL: true});
               return await i.editReply({
