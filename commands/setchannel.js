@@ -1,11 +1,11 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const setGuildChannel = require("../models/setGuildChannel-schema");
-const {  Permissions } = require("discord.js");
+const { Permissions } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("setchannel")
-    .setDescription("set a rank channel")
+    .setDescription("set a ranked channel channel")
 
     .addChannelOption((option) =>
       option
@@ -15,7 +15,7 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    if(!interaction.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
+    if (!interaction.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
       return interaction.reply({
         content: "You dont have permission for this command...",
         ephemeral: true,
@@ -32,13 +32,17 @@ module.exports = {
 
     const setChannel = await setGuildChannel.findOneAndUpdate(
       { _id: interaction.guild.id },
-      { _id: interaction.guild.id, channelId: channel.id },
+      {
+        _id: interaction.guild.id,
+        channelId: channel.id,
+        channelName: channel.name,
+      },
       { upsert: true }
     );
 
-    if(setChannel) {
+    if (setChannel) {
       return interaction.reply({
-        content: "Channel is set.",
+        content: "Rank channel is set.",
         ephemeral: true,
       });
     }
