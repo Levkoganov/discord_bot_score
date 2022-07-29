@@ -6,10 +6,10 @@ const reqString = {
   require:true,
 }
 
-// Post schema
 const setGuildChannel = new Schema({
   _id: reqString, // Guild ID
-  channelId: reqString
+  channelId: reqString,
+  channelName: reqString
 });
 
 module.exports = mongoose.model('Guild-channel', setGuildChannel);
