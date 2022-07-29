@@ -1,8 +1,7 @@
 const { MessageEmbed } = require("discord.js");
 
 function scoreEmbed(player1, player2, score1, score2, rounds, thumbnailImg) {
-  const emptySpace = "\u200B \u200B \u200B \u200B \u200B \u200B \u200B" // Empty space
-  const player1Info = `**__PLAYER1__ (${score1})${emptySpace} \n` +  "`1`" +`${player1}**`; // Player 1 string info
+  const player1Info = `**__PLAYER1__ (${score1}) \n` +  "`1`" +`${player1}**`; // Player 1 string info
   const player2Info = `**__PLAYER2__ (${score2})\n` + "`2`" + `${player2}**`; // Player 2 string info
 
   return new MessageEmbed()
@@ -23,7 +22,7 @@ function scoreEmbed(player1, player2, score1, score2, rounds, thumbnailImg) {
 
       {
         name: "\u200B",
-        value: `***--VS--***${emptySpace}`,
+        value: `***--VS--***`,
         inline: true,
       },
 
