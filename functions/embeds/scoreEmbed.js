@@ -8,9 +8,8 @@ function scoreEmbed(player1, player2, score1, score2, rounds, thumbnailImg) {
     .setColor("BLURPLE")
     .setTitle(`*Match (first to ${rounds})*`)
     .setAuthor({
-      name: "lf2.co.il",
+      name: "little fighter",
       iconURL: "attachment://julian_author.png",
-      url: "https://lf2.co.il/",
     })
     .setThumbnail(`attachment://${thumbnailImg}`)
     .addFields(
