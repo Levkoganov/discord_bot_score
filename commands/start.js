@@ -9,7 +9,7 @@ const {
 
 // Custom functions
 const getChannelData = require("../functions/getChannelData");
-const setPlayerScore = require("../functions/setPlayerScore.js")
+const updatePlayerScore = require("../functions/updatePlayerScore.js")
 const updateRankChannel = require("../functions/updateRankChannel")
 
 // Card UI
@@ -111,6 +111,20 @@ module.exports = {
             .setCustomId(p2.username)
             .setLabel(p2.username)
             .setStyle("SUCCESS")
+        )
+        // Btn(3)
+        .addComponents(
+          new MessageButton()
+            .setCustomId("Reset")
+            .setLabel("RESET🔄")
+            .setStyle("SECONDARY")
+        )
+        // Btn(4)
+        .addComponents(
+          new MessageButton()
+            .setCustomId("Delete")
+            .setLabel("❌")
+            .setStyle("DANGER")
         );
 
       // Reply interaction
@@ -125,9 +139,10 @@ module.exports = {
       const filter = async (i) => {
         // Check users ID
         if (i.user.id === p1.id || i.user.id === p2.id)
+          return true;
           // Limit by username
-          if (i.customId === i.user.username)
-            return true;
+          // if (i.customId === i.user.username)
+          //   return true;
 
         // Check for specific name
         if (i.user.username === "Kurama") {
@@ -143,7 +158,7 @@ module.exports = {
 
       const collector = rep.createMessageComponentCollector({
         filter,
-        max: 19,
+        max: 99,
       });
 
       // Listen on success
@@ -158,11 +173,11 @@ module.exports = {
           if (p1_score === rounds) {
             cardEmbed.fields[0].value = btn1_player1Update; // Winner field
             cardEmbed.fields[2].value = btn1_player2Update; // Loser field
-            cardEmbed.setTitle(`${Winneremoji}*${p1.username}*`);
+            cardEmbed.setTitle(`${Winneremoji}*${p1.username} (${p1_score} - ${p2_score})*`);
             cardEmbed.setThumbnail(p1_avatar);
 
-            // Update player score
-            await setPlayerScore(p1, p2, guiildInfo.name);
+            // Update player score collection
+            await updatePlayerScore(p1, p2, guiildInfo.name);
 
             // Update card
             await i.update({
@@ -209,11 +224,11 @@ module.exports = {
           if (p2_score === rounds) {
             cardEmbed.fields[2].value = btn2_player2Update; // Winner field
             cardEmbed.fields[0].value = btn2_player1Update; // Loser field
-            cardEmbed.setTitle(`${Winneremoji}*${p2.username}*`);
+            cardEmbed.setTitle(`${Winneremoji}*${p2.username} (${p2_score} - ${p1_score})*`);
             cardEmbed.setThumbnail(p2_avatar);
 
-            //PLAYERSCORETEST
-            await setPlayerScore(p2, p1, guiildInfo.name);
+            // Update player score collection
+            await updatePlayerScore(p2, p1, guiildInfo.name);
 
             await i.update({
               embeds: [cardEmbed],
@@ -248,6 +263,23 @@ module.exports = {
           cardEmbed.fields[2].value = btn2_player2Update; // Edit embed field
           await i.update({ embeds: [cardEmbed] });
         }
+
+        // Reset card points
+        if (i.customId === "Reset") {
+          p1_score = 0; // reset p1 score
+          p2_score = 0; // reset p2 score
+          let resetPlayer1 = `**__PLAYER1__ (${p1_score})\n` + "`1`" + `${p1}**`;
+          let resetPlayer2 = `**__PLAYER2__ (${p2_score})\n` + "`2`" + `${p2}**`;
+          cardEmbed.fields[0].value = resetPlayer1 // Player1
+          cardEmbed.fields[2].value = resetPlayer2; // Player2
+          return await i.update({ embeds: [cardEmbed] });
+        }
+
+        // Delete bot interaction
+        if (i.customId === "Delete") {
+          interaction.deleteReply();
+        }
+
       });
 
       // Listen when end
