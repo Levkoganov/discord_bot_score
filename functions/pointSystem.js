@@ -7,11 +7,11 @@ async function pointSystem(winner, loser, isLoser) {
     const loserData = await setPlayerScoreSchema.findById(loser.id);
 
     const minScore = -12; // Min Remainder Points
-    const HighScore = 6; // Max Remainder Points
-    const maxScore = 12; // Max Remainder Points
+    const HighScore = 6; // High Remainder Points
+    const maxScore = 112; // Max Remainder Points
 
     // Points variables
-    let finalPoints = 0;
+    let startPoints = 100;
     let smallPoints = 1;
     let regularPoints = 3;
     let bigPoints = 5;
@@ -24,60 +24,61 @@ async function pointSystem(winner, loser, isLoser) {
 
     // If No winner and no loser score
     if (!winnerData && !loserData) {
-      finalPoints = regularPoints;
-      return finalPoints;
+      startPoints += regularPoints;
+      return startPoints;
     }
 
     // If Loser doesn`t have score
     if (winnerData && !loserData) {
       switch (true) {
-        // Regular Points (winner has less than 6 ponits)
-        case winnerData.score <= HighScore:
-          finalPoints = regularPoints;
+        // Regular Points (winner has less than or equal 106 points)
+        case winnerData.score <= HighScore + startPoints:
+          if (isLoser) startPoints += regularPoints;
+          else startPoints = regularPoints;
           break;
 
-        // Small Points (winner has 6 or more ponits)
-        case winnerData.score > HighScore:
-          finalPoints = smallPoints;
+        // Small Points (winner has 106 or more points)
+        case winnerData.score > HighScore + startPoints:
+          if (isLoser) startPoints += smallPoints;
+          else startPoints = smallPoints;
           break;
 
         default:
-          finalPoints;
+          startPoints = 0;
           console.log("something went wrong..");
           break;
       }
 
-      return finalPoints;
+      return startPoints;
     }
-
+    
     // If Winner doesn`t have score
     if (!winnerData && loserData) {
       switch (true) {
-        // Small Points (loser has less than 6 ponits)
-        case loserData.score < HighScore:
-          finalPoints = smallPoints;
+
+        // Regular Points (loser has between 0 ~ 111 points)
+        case loserData.score >= 0 && loserData.score < maxScore:
+          if (isLoser) startPoints = regularPoints;
+          else startPoints += regularPoints;
           break;
 
-        // Regular Points (loser has between 6 ~ 11 points)
-        case loserData.score >= HighScore && loserData.score < maxScore:
-          finalPoints = regularPoints;
-          break;
-
-        // Big Points (loser has more than 11 points)
+        // Big Points (loser has more than 112 points)
         case loserData.score >= maxScore:
-          finalPoints = regularPoints;
+          if (isLoser) startPoints = bigPoints;
+          else startPoints += bigPoints;
           break;
 
+        // Unexpected result
         default:
-          finalPoints;
+          startPoints = 0;
           console.log("loserData: something went wrong..");
           break;
       }
 
       if (isLoser) {
-        return calLoserScore(loserData.score, finalPoints);
+        return calLoserScore(loserData.score, startPoints);
       }
-      return finalPoints;
+      return startPoints;
     }
 
     // If both player has score
@@ -87,29 +88,29 @@ async function pointSystem(winner, loser, isLoser) {
       switch (true) {
         // Big Points (Reminder less than or equal -12)
         case resultRemainder <= minScore:
-          finalPoints = bigPoints;
+          startPoints = bigPoints;
           break;
 
         // Regular Points (Reminder is between -11 and 6)
         case resultRemainder > minScore && resultRemainder <= HighScore:
-          finalPoints = regularPoints;
+          startPoints = regularPoints;
           break;
 
         // Small Points (Reminder is higher than 6)
         case resultRemainder > HighScore:
-          finalPoints = smallPoints;
+          startPoints = smallPoints;
           break;
 
+        // Unexpected result
         default:
-          finalPoints;
-          console.log("winnerData && loserData: something went wrong..");
+          startPoints = 0;
           break;
       }
 
       if (isLoser) {
-        return calLoserScore(loserData.score, finalPoints);
+        return calLoserScore(loserData.score, startPoints);
       }
-      return finalPoints;
+      return startPoints;
     }
 
     return 0;
@@ -118,15 +119,12 @@ async function pointSystem(winner, loser, isLoser) {
   }
 }
 
-function calLoserScore(loserScore, finalPoints) {
-  const scoreSummary = loserScore + finalPoints;
-  // console.log("loserScore", loserScore);
-  // console.log("finalPoints", finalPoints);
-  // console.log("scoreSummary", scoreSummary);
+function calLoserScore(loserScore, startPoints) {
+  const scoreSummary = loserScore + startPoints;
 
   if (loserScore === 0) return 0;
   else if (scoreSummary === -1) return scoreSummary;
-  else if (scoreSummary >= 0) return finalPoints;
+  else if (scoreSummary >= 0) return startPoints;
   else return 0;
 }
 
