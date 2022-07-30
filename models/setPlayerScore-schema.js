@@ -11,6 +11,11 @@ const defaultNumber = {
   default: 0
 }
 
+const defaultScore = {
+  type: Number,
+  default: 100
+}
+
 // playerScore schema
 const setPlayerScore = new Schema({
   _id: reqString,
@@ -18,7 +23,7 @@ const setPlayerScore = new Schema({
   name: reqString,
   win: defaultNumber,
   lose: defaultNumber,
-  score: defaultNumber
+  score: defaultScore
 },
 { timestamps: true }
 );
