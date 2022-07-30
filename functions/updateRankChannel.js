@@ -68,9 +68,6 @@ async function getAllPlayersRanks() {
         $addFields: { rank: { $add: ["$rank", 1] } },
       },
       {
-        $sort: { score: -1, win: -1, lose: 1 },
-      },
-      {
         $project: {
           _id: "$_id",
           name: "$name",
