@@ -116,15 +116,15 @@ module.exports = {
         .addComponents(
           new MessageButton()
             .setCustomId("Reset")
-            .setLabel("RESET🔄")
+            .setLabel("RESET 🔄")
             .setStyle("SECONDARY")
         )
         // Btn(4)
         .addComponents(
           new MessageButton()
             .setCustomId("Delete")
-            .setLabel("❌")
-            .setStyle("DANGER")
+            .setLabel("DELETE ❌")
+            .setStyle("SECONDARY")
         );
 
       // Reply interaction
