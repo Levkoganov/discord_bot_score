@@ -7,7 +7,7 @@ async function pointSystem(winner, loser, isLoser) {
     const loserData = await setPlayerScoreSchema.findById(loser.id);
 
     const minScore = -12; // Min Remainder Points
-    const HighScore = 6; // High Remainder Points
+    const HighScore = 12; // High Remainder Points
     const maxScore = 112; // Max Remainder Points
 
     // Points variables
@@ -20,7 +20,7 @@ async function pointSystem(winner, loser, isLoser) {
     if (isLoser === true) {
       smallPoints = -Math.abs(smallPoints);
       regularPoints = -Math.abs(regularPoints) + 1;
-      bigPoints = -Math.abs(bigPoints) + 1;
+      bigPoints = -Math.abs(bigPoints) + 2;
     }
 
     // If No winner and no loser score
@@ -32,14 +32,14 @@ async function pointSystem(winner, loser, isLoser) {
     // If Loser doesn`t have score
     if (winnerData && !loserData) {
       switch (true) {
-        // Regular Points (winner has less than or equal 106 points)
-        case winnerData.score <= HighScore + startPoints:
+        // Regular Points (winner has less than 112 points)
+        case winnerData.score < HighScore + startPoints:
           if (isLoser) startPoints += regularPoints;
           else startPoints = regularPoints;
           break;
 
-        // Small Points (winner has 106 or more points)
-        case winnerData.score > HighScore + startPoints:
+        // Small Points (winner has 112 or more points)
+        case winnerData.score >= HighScore + startPoints:
           if (isLoser) startPoints += smallPoints;
           else startPoints = smallPoints;
           break;
@@ -85,6 +85,7 @@ async function pointSystem(winner, loser, isLoser) {
     // If both player has score
     if (winnerData && loserData) {
       let resultRemainder = winnerData.score - loserData.score;
+      console.log(resultRemainder, "resultRemainder");
 
       switch (true) {
         // Big Points (Reminder less than or equal -12)
@@ -92,13 +93,13 @@ async function pointSystem(winner, loser, isLoser) {
           startPoints = bigPoints;
           break;
 
-        // Regular Points (Reminder is between -11 and 6)
-        case resultRemainder > minScore && resultRemainder <= HighScore:
+        // Regular Points (Reminder is between -11 and 11)
+        case resultRemainder > minScore && resultRemainder < HighScore:
           startPoints = regularPoints;
           break;
 
-        // Small Points (Reminder is higher than 6)
-        case resultRemainder > HighScore:
+        // Small Points (Reminder is higher than 12)
+        case resultRemainder >= HighScore:
           startPoints = smallPoints;
           break;
 
