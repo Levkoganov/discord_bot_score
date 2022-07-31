@@ -16,6 +16,7 @@ async function pointSystem(winner, loser, isLoser) {
     let regularPoints = 3;
     let bigPoints = 5;
 
+    // If loser than invert number to negative
     if (isLoser === true) {
       smallPoints = -Math.abs(smallPoints);
       regularPoints = -Math.abs(regularPoints) + 1;
@@ -119,13 +120,14 @@ async function pointSystem(winner, loser, isLoser) {
   }
 }
 
+// calculate loser score
 function calLoserScore(loserScore, startPoints) {
   const scoreSummary = loserScore + startPoints;
 
-  if (loserScore === 0) return 0;
-  else if (scoreSummary === -1) return scoreSummary;
-  else if (scoreSummary >= 0) return startPoints;
-  else return 0;
+  if (loserScore === 0) return 0; // if loser score is 0 return 0
+  else if (scoreSummary === -1) return scoreSummary; // check if loser score will be less than 0
+  else if (scoreSummary >= 0) return startPoints; // return calcualted loser score
+  else return 0; // unexpected result
 }
 
 module.exports = {

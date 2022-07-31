@@ -6,6 +6,7 @@ function leaderboardEmbed(rankedPlayersData) {
   const secondPlace = "<:second_place:1001936945208889465>"; // Winner emoji
   const thirdPlace = "<:third_place:1001936962862719026>"; // Winner emoji
 
+  // Embed messagge
   const rankedEmbedData = new MessageEmbed()
     .setColor("BLURPLE")
     .setTitle("\u200B")
@@ -18,8 +19,10 @@ function leaderboardEmbed(rankedPlayersData) {
     .setFooter({ text: 'leaderboards last update', iconURL: 'https://i.imgur.com/AfFp7pu.png' })
     .setTimestamp();
 
+  // Loop through all ranked players
   rankedPlayersData.forEach((data) => {
     rankedEmbedData.addFields({
+      // append emote to top 3 players else append number
       name: `${data.rank === 1 ? firstPlace : data.rank === 2 ? secondPlace : data.rank === 3 ? thirdPlace : 'Rank'.concat('`', data.rank, '`: ')} ${''.concat('__',data.name,'__')}`,
       value: `Points:${data.score} | Win:${data.win} | Lose:${data.lose}`,
     });

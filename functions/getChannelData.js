@@ -1,6 +1,6 @@
 const setGuildChannel = require("../models/setGuildChannel-schema");
 
-//
+// Get selected channel
 async function getChannelData(guildId, interaction) {
   try {
     // Check if channel exist in server

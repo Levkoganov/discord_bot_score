@@ -6,6 +6,7 @@ const reqString = {
   require:true,
 }
 
+// Schema for channel
 const setGuildChannel = new Schema({
   _id: reqString, // Guild ID
   channelId: reqString,

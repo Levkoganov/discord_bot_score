@@ -17,22 +17,22 @@ async function updateRankChannel(channel) {
     // Check number of message in channel
     if (channelData.size === 0) {
       return channel.send({ embeds: [embedData], files: [iconImg, authorImg] });
+      
+    // If number of message is greater than 0
     } else {
       let counter = 0; // Counter for loop iteration
       for (const message of channelData) {
         counter++; // Increment number every iteration
 
-        // Check and for bot message
+        // Edit bot message
         if (message[1].author.bot) {
-          // Edit bot message
           return message[1].edit({
             embeds: [embedData],
             files: [iconImg, authorImg],
           });
 
-          // If no bot message
+        // If no bot message send new message
         } else if (!message[1].author.bot && channelData.size === counter) {
-          // Send new message
           return channel.send({
             embeds: [embedData],
             files: [iconImg, authorImg],

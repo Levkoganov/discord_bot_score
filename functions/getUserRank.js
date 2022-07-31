@@ -1,13 +1,9 @@
-// const { MessageAttachment } = require("discord.js");
 const setPlayerScoreSchema = require("../models/setPlayerScore-schema");
 
 // Update rank leaderboard
 async function getUserRank(user) {
   try {
     // Images
-    // const iconImg = new MessageAttachment("./public/img/julian_author.png");
-    // const authorImg = new MessageAttachment("./public/img/lf2_title_icon.png");
-    
     const userInfo = await getUserInfo(user.id); // Get ranked players
     return userInfo
     

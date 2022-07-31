@@ -16,7 +16,7 @@ const defaultScore = {
   default: 100
 }
 
-// playerScore schema
+// Schema for players score information
 const setPlayerScore = new Schema({
   _id: reqString,
   servername: reqString,

@@ -65,9 +65,9 @@ module.exports = {
   async execute(interaction) {
     try {
       // Server and Channel info
-      const guiildInfo = interaction.guild;
+      const guiildInfo = interaction.guild; // Guild info
       const channelInfo = {};
-      let channelData = channelInfo[guiildInfo.id];
+      let channelData = channelInfo[guiildInfo.id]; // Guild id as key
 
       const imgResult = randomPicture(); // Generate random img
       const authorImg = new MessageAttachment("./public/img/julian_author.png");

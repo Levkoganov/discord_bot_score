@@ -7,6 +7,7 @@ module.exports = {
     .setName("setchannel")
     .setDescription("set a ranked channel channel")
 
+    // Channel name
     .addChannelOption((option) =>
       option
         .setName("channel")
@@ -15,6 +16,7 @@ module.exports = {
     ),
 
   async execute(interaction) {
+    // If user is not admin
     if (!interaction.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
       return interaction.reply({
         content: "You dont have permission for this command...",
@@ -22,7 +24,9 @@ module.exports = {
       });
     }
 
-    const channel = interaction.options.getChannel("channel");
+    const channel = interaction.options.getChannel("channel"); // Channel info
+
+    // Check for text channel
     if (!channel || channel.type !== "GUILD_TEXT") {
       return interaction.reply({
         content: "Please tag a text channel.",
@@ -30,6 +34,7 @@ module.exports = {
       });
     }
 
+    // Add channel to DB
     const setChannel = await setGuildChannel.findOneAndUpdate(
       { _id: interaction.guild.id },
       {
@@ -40,6 +45,7 @@ module.exports = {
       { upsert: true }
     );
 
+    // Reply if channel is set
     if (setChannel) {
       return interaction.reply({
         content: "Rank channel is set.",
